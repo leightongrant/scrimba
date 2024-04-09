@@ -5,3 +5,7 @@
 body {
   background-color: #23252c;
 }
+
+.meme-text {
+  -webkit-text-stroke: 1px #000;
+}

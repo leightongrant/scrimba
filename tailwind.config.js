@@ -5,7 +5,9 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        impact: ['impact'],
         poppins: ['Poppins', 'sans-serif'],
+        karla: ['Karla', 'sans-serif'],
         serif: ['Merriweather', 'serif'],
       },
     },
