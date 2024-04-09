@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "available": "sold out",
+      "title": "Life lessons with Katie Zaferes",
+      "image": "/katie-zaferes.png",
+      "country": "USA",
+      "ratings": 6,
+      "price": 136,
+      "stars": 5.0
+    },
+    {
+      "available": "online",
+      "title": "Learn wedding photography",
+      "image": "/wedding-photography.png",
+      "country": "USA",
+      "ratings": 30,
+      "price": 125,
+      "stars": 5.0
+    },
+    {
+      "title": "Group Mountain Biking",
+      "image": "/mountain-bike.png",
+      "country": "USA",
+      "ratings": 2,
+      "price": 50,
+      "stars": 4.8
+    }
+  ]
+}
