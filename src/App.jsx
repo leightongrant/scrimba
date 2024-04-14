@@ -2,6 +2,7 @@ import AirbnbExperience from './components/AirbnbExperience'
 import DigitalBusinessCard from './components/DigitalBusinessCard'
 import TravelJournalMain from './components/TravelJournal'
 import MemeGenerator from './components/MemeGenerator'
+import ReactFacts from './components/ReactFacts'
 
 function App() {
   return (
@@ -9,7 +10,8 @@ function App() {
       {/* <DigitalBusinessCard /> */}
       {/* <AirbnbExperience /> */}
       {/* <TravelJournalMain /> */}
-      <MemeGenerator />
+      {/* <MemeGenerator /> */}
+      <ReactFacts />
     </div>
   )
 }
