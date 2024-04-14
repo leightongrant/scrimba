@@ -6,9 +6,15 @@ const ReactFactsHeader = ({ darkMode, toggle }) => {
 
   return (
     <header className={`shadow-2xl flex items-center gap-1 p-8 ${darkModeBg}`}>
-      <img src={reactLogo} width="158px" alt="react logo" className="mr-auto" />
+      <img src={reactLogo} width="28px" alt="react logo" />
+      <h2 className="mr-auto font-bold text-2xl text-[#00ABCA]">ReactFacts</h2>
       <div className="flex gap-3 items-center">
-        <span className="text-[10px] font-semibold text-[#918E9B]">Light</span>
+        <span
+          className={`text-[10px] font-semibold ${
+            darkMode ? 'text-[#918E9B]' : 'text-[#2B283A]'
+          }`}>
+          Light
+        </span>
         <div
           className={`${
             darkMode ? 'justify-end bg-white' : 'justify-start bg-[#21222A]'
@@ -17,7 +23,9 @@ const ReactFactsHeader = ({ darkMode, toggle }) => {
           <div className={`w-3 h-3 rounded-full ${darkModeBg}`}></div>
         </div>
         <span
-          className={`text-[10px] font-semibold ${darkMode && 'text-white'}`}>
+          className={`text-[10px] font-semibold ${
+            darkMode ? 'text-white' : 'text-[#D5D4D8]'
+          }`}>
           Dark
         </span>
       </div>
