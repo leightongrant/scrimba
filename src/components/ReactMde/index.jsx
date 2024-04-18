@@ -8,7 +8,8 @@ import 'react-mde/lib/styles/css/react-mde-all.css'
 
 const ReactMDE = () => {
   const [notes, setNotes] = React.useState(
-    JSON.parse(localStorage.getItem('notesLocal')) ||
+    () =>
+      JSON.parse(localStorage.getItem('notesLocal')) ||
       localStorage.setItem('notesLocal', JSON.stringify([]))
   )
   const [currentNoteId, setCurrentNoteId] = React.useState(
