@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+/* body {
   background-color: #4b4e55;
-}
+} */
 
 .meme-text {
-  -webkit-text-stroke: 1px #000;
+    -webkit-text-stroke: 1px #000;
 }

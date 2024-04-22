@@ -1,88 +1,117 @@
-import React from 'react'
-import Sidebar from './Sidebar'
-import Editor from './Editor'
-import Split from 'react-split'
-import { nanoid } from 'nanoid'
-import './mde.css'
-import 'react-mde/lib/styles/css/react-mde-all.css'
+import React, { Suspense } from 'react';
+import Sidebar from './Sidebar';
+import Editor from './Editor';
+import Split from 'react-split';
+import { nanoid } from 'nanoid';
+import './mde.css';
+import 'react-mde/lib/styles/css/react-mde-all.css';
+import supabase from '../../utils/supabase';
+import { GridLoader } from 'react-spinners';
 
 const ReactMDE = () => {
-  const [notes, setNotes] = React.useState(
-    () =>
-      JSON.parse(localStorage.getItem('notesLocal')) ||
-      localStorage.setItem('notesLocal', JSON.stringify([]))
-  )
-  const [currentNoteId, setCurrentNoteId] = React.useState(
-    (notes[0] && notes[0].id) || ''
-  )
-  React.useEffect(() => {
-    localStorage.setItem('notesLocal', JSON.stringify(notes))
-  }, [notes])
+    const [sNotes, setSnotes] = React.useState([]);
+    const [error, setError] = React.useState('');
+    const [notes, setNotes] = React.useState(
+        () =>
+            JSON.parse(localStorage.getItem('notesLocal')) ||
+            localStorage.setItem('notesLocal', JSON.stringify([]))
+    );
 
-  function createNewNote() {
-    const newNote = {
-      id: nanoid(),
-      body: "# Type your markdown note's title here",
+    const [currentNoteId, setCurrentNoteId] = React.useState('');
+
+    React.useEffect(() => {
+        localStorage.setItem('notesLocal', JSON.stringify(notes));
+    }, [notes]);
+
+    React.useEffect(() => {
+        async function getNotes() {
+            const { data } = await supabase.from('notes').select();
+            // setCurrentNoteId(data[0].id);
+            setSnotes(data);
+        }
+        getNotes();
+    }, [error]);
+
+    React.useEffect(() => {
+        setError('');
+    }, []);
+
+    async function createNewNote() {
+        const newNote = {
+            body: "# Type your markdown note's title here",
+        };
+        const res = await supabase.from('notes').insert(newNote);
+        setError(res.error);
     }
-    setNotes((prevNotes) => {
-      return [newNote, ...prevNotes]
-    })
-    setCurrentNoteId(newNote.id)
-  }
 
-  function updateNote(text) {
-    setNotes((oldNotes) => {
-      const idx = oldNotes.indexOf(findCurrentNote())
-      const curNote = findCurrentNote()
+    async function updateNote(text) {
+        const res = await supabase
+            .from('notes')
+            .update({ body: text })
+            .eq('id', currentNoteId);
+        setError(res.error);
 
-      setCurrentNoteId(curNote.id)
+        // setNotes((oldNotes) => {
+        //     const idx = oldNotes.indexOf(findCurrentNote());
+        //     const curNote = findCurrentNote();
 
-      if (idx > 0) {
-        oldNotes.splice(idx, 1)
-        oldNotes.unshift(curNote)
-      }
-      return oldNotes.map((oldNote) => {
-        console.log(oldNote.id, currentNoteId)
-        return oldNote.id === currentNoteId
-          ? { ...oldNote, body: text }
-          : oldNote
-      })
-    })
-  }
+        //     setCurrentNoteId(curNote.id);
 
-  function findCurrentNote() {
+        //     if (idx > 0) {
+        //         oldNotes.splice(idx, 1);
+        //         oldNotes.unshift(curNote);
+        //     }
+        //     return oldNotes.map((oldNote) => {
+        //         console.log(oldNote.id, currentNoteId);
+        //         return oldNote.id === currentNoteId
+        //             ? { ...oldNote, body: text }
+        //             : oldNote;
+        //     });
+        // });
+    }
+
+    function findCurrentNote() {
+        return (
+            sNotes.find((note) => {
+                return note.id === currentNoteId;
+            }) || notes[0]
+        );
+    }
+
     return (
-      notes.find((note) => {
-        return note.id === currentNoteId
-      }) || notes[0]
-    )
-  }
+        <Suspense fallback={<GridLoader />}>
+            <main className='bg-white font-karla container mx-auto'>
+                {sNotes.length > 0 ? (
+                    <Split
+                        sizes={[30, 70]}
+                        direction='horizontal'
+                        className='split'
+                    >
+                        <Sidebar
+                            notes={sNotes}
+                            currentNote={findCurrentNote()}
+                            setCurrentNoteId={setCurrentNoteId}
+                            newNote={createNewNote}
+                            setNotes={setNotes}
+                        />
+                        {sNotes.length > 0 && (
+                            <Editor
+                                currentNote={findCurrentNote()}
+                                updateNote={updateNote}
+                            />
+                        )}
+                    </Split>
+                ) : (
+                    <div className='no-notes'>
+                        <h1>You have no notes</h1>
+                        <button className='first-note' onClick={createNewNote}>
+                            Create one now
+                        </button>
+                    </div>
+                )}
+            </main>
+        </Suspense>
+    );
+};
 
-  return (
-    <main className="bg-white font-karla">
-      {notes.length > 0 ? (
-        <Split sizes={[30, 70]} direction="horizontal" className="split">
-          <Sidebar
-            notes={notes}
-            currentNote={findCurrentNote()}
-            setCurrentNoteId={setCurrentNoteId}
-            newNote={createNewNote}
-            setNotes={setNotes}
-          />
-          {currentNoteId && notes.length > 0 && (
-            <Editor currentNote={findCurrentNote()} updateNote={updateNote} />
-          )}
-        </Split>
-      ) : (
-        <div className="no-notes">
-          <h1>You have no notes</h1>
-          <button className="first-note" onClick={createNewNote}>
-            Create one now
-          </button>
-        </div>
-      )}
-    </main>
-  )
-}
-
-export default ReactMDE
+export default ReactMDE;
