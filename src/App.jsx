@@ -57,7 +57,9 @@ function App() {
         <div className='bg-slate-500 pb-20 min-h-screen'>
             {/* <MainHeader /> */}
             <MainNav />
-            <Router routes={routes} />
+            <div className='grid place-items-center'>
+                <Router routes={routes} />
+            </div>
         </div>
     );
 }

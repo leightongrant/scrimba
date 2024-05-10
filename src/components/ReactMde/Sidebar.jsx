@@ -1,15 +1,12 @@
 import React from 'react'
 
 const Sidebar = (props) => {
-  function handleDelete() {
-    props.setNotes((notes) => {
-      return notes.filter((note) => {
-        return note.id !== props.currentNote.id
-      })
-    })
+  const handleSelect = (note) => {
+    props.setCurrentNoteId(note.id)
+    props.setActiveNote(note)
   }
 
-  const noteElements = props.notes.map((note, index) => {
+  const noteElements = props.notes.map((note) => {
     const re = /[a-z0-9 ]+/i
     const noteTitle = note.body.split('\n')[0].match(re)
     return (
@@ -18,13 +15,12 @@ const Sidebar = (props) => {
           className={`title py-4 px-4 ${
             note.id === props.currentNote.id ? 'selected-note' : ''
           }`}
-          onClick={() => props.setCurrentNoteId(note.id)}>
+          onClick={() => handleSelect(note)}>
           <h4 className="text-snippet">{noteTitle || 'Create new note'}</h4>
           {note.id === props.currentNote.id && (
             <button
-              className="del-btn bg-slate-500 px-2 rounded-full hover:bg-slate-400
-            "
-              onClick={handleDelete}>
+              className="px-2 rounded-full del-btn bg-slate-500 hover:bg-slate-400 "
+              onClick={props.deleteNote}>
               X
             </button>
           )}
@@ -41,7 +37,7 @@ const Sidebar = (props) => {
           +
         </button>
       </div>
-      {noteElements}
+      <div className="sidebar--content">{noteElements}</div>
     </section>
   )
 }

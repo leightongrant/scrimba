@@ -1,117 +1,126 @@
-import React, { Suspense } from 'react';
-import Sidebar from './Sidebar';
-import Editor from './Editor';
-import Split from 'react-split';
-import { nanoid } from 'nanoid';
-import './mde.css';
-import 'react-mde/lib/styles/css/react-mde-all.css';
-import supabase from '../../utils/supabase';
-import { GridLoader } from 'react-spinners';
+import React from 'react'
+import Sidebar from './Sidebar'
+import Editor from './Editor'
+import Split from 'react-split'
+import './mde.css'
+import 'react-mde/lib/styles/css/react-mde-all.css'
+import supabase from '../../utils/supabase'
 
 const ReactMDE = () => {
-    const [sNotes, setSnotes] = React.useState([]);
-    const [error, setError] = React.useState('');
-    const [notes, setNotes] = React.useState(
-        () =>
-            JSON.parse(localStorage.getItem('notesLocal')) ||
-            localStorage.setItem('notesLocal', JSON.stringify([]))
-    );
+  const [error, setError] = React.useState(null)
+  const [status, setStatus] = React.useState(null)
+  const [notes, setNotes] = React.useState(null)
+  const [currentNoteId, setCurrentNoteId] = React.useState('')
+  const [activeNote, setActiveNote] = React.useState('')
 
-    const [currentNoteId, setCurrentNoteId] = React.useState('');
-
-    React.useEffect(() => {
-        localStorage.setItem('notesLocal', JSON.stringify(notes));
-    }, [notes]);
-
-    React.useEffect(() => {
-        async function getNotes() {
-            const { data } = await supabase.from('notes').select();
-            // setCurrentNoteId(data[0].id);
-            setSnotes(data);
-        }
-        getNotes();
-    }, [error]);
-
-    React.useEffect(() => {
-        setError('');
-    }, []);
-
-    async function createNewNote() {
-        const newNote = {
-            body: "# Type your markdown note's title here",
-        };
-        const res = await supabase.from('notes').insert(newNote);
-        setError(res.error);
-    }
-
-    async function updateNote(text) {
+  React.useEffect(() => {
+    const getSupabaseNotes = async () => {
+      try {
         const res = await supabase
-            .from('notes')
-            .update({ body: text })
-            .eq('id', currentNoteId);
-        setError(res.error);
+          .from('notes')
+          .select()
+          .order('created_at', { ascending: true })
 
-        // setNotes((oldNotes) => {
-        //     const idx = oldNotes.indexOf(findCurrentNote());
-        //     const curNote = findCurrentNote();
+        if (res.error) {
+          setError(res.error.message)
+        }
 
-        //     setCurrentNoteId(curNote.id);
-
-        //     if (idx > 0) {
-        //         oldNotes.splice(idx, 1);
-        //         oldNotes.unshift(curNote);
-        //     }
-        //     return oldNotes.map((oldNote) => {
-        //         console.log(oldNote.id, currentNoteId);
-        //         return oldNote.id === currentNoteId
-        //             ? { ...oldNote, body: text }
-        //             : oldNote;
-        //     });
-        // });
+        if (res.data) {
+          setNotes(res.data)
+          setCurrentNoteId(res.data[0].id)
+          setActiveNote(res.data[0])
+        }
+      } catch (e) {
+        console.log(e)
+      } finally {
+        setStatus(null)
+      }
     }
+    getSupabaseNotes()
+  }, [status, error])
 
-    function findCurrentNote() {
-        return (
-            sNotes.find((note) => {
-                return note.id === currentNoteId;
-            }) || notes[0]
-        );
+  const createNewNote = async () => {
+    const newNote = {
+      body: "# Type your markdown note's title here",
     }
+    try {
+      const res = await supabase.from('notes').select()
+      if (res.error) {
+        setError(res.error.message)
+      }
 
+      if (res.data) {
+        await supabase.from('notes').insert(newNote)
+        setStatus('inserted')
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const deleteNote = async () => {
+    try {
+      const res = await supabase.from('notes').select().eq('id', currentNoteId)
+      if (res.error) {
+        setError(res.error.message)
+      }
+      if (res.data) {
+        await supabase.from('notes').delete().eq('id', currentNoteId)
+        setStatus('deleted')
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  function findCurrentNote() {
     return (
-        <Suspense fallback={<GridLoader />}>
-            <main className='bg-white font-karla container mx-auto'>
-                {sNotes.length > 0 ? (
-                    <Split
-                        sizes={[30, 70]}
-                        direction='horizontal'
-                        className='split'
-                    >
-                        <Sidebar
-                            notes={sNotes}
-                            currentNote={findCurrentNote()}
-                            setCurrentNoteId={setCurrentNoteId}
-                            newNote={createNewNote}
-                            setNotes={setNotes}
-                        />
-                        {sNotes.length > 0 && (
-                            <Editor
-                                currentNote={findCurrentNote()}
-                                updateNote={updateNote}
-                            />
-                        )}
-                    </Split>
-                ) : (
-                    <div className='no-notes'>
-                        <h1>You have no notes</h1>
-                        <button className='first-note' onClick={createNewNote}>
-                            Create one now
-                        </button>
-                    </div>
-                )}
-            </main>
-        </Suspense>
-    );
-};
+      notes.find((note) => {
+        return note.id === currentNoteId
+      }) || notes[0]
+    )
+  }
 
-export default ReactMDE;
+  if (error) {
+    return <h2>{error}</h2>
+  }
+
+  if (!notes) {
+    return <h2>Loading...</h2>
+  }
+
+  return (
+    <main className="container mx-auto bg-white font-karla">
+      {notes.length > 0 ? (
+        <Split sizes={[30, 70]} direction="horizontal" className="split">
+          <Sidebar
+            notes={notes && notes}
+            currentNote={findCurrentNote()}
+            setCurrentNoteId={setCurrentNoteId}
+            newNote={createNewNote}
+            deleteNote={deleteNote}
+            setActiveNote={setActiveNote}
+          />
+          {notes.length > 0 && (
+            <Editor
+              currentNote={findCurrentNote()}
+              activeNote={activeNote}
+              setStatus={setStatus}
+              setActiveNote={setActiveNote}
+              setError={setError}
+            />
+          )}
+        </Split>
+      ) : (
+        <div className="no-notes">
+          <h1>You have no notes</h1>
+          <button className="first-note" onClick={createNewNote}>
+            Create one now
+          </button>
+        </div>
+      )}
+    </main>
+  )
+}
+
+export default ReactMDE
